@@ -18,7 +18,7 @@ IPAddress gatewayIP;
 bool last_State = false; //trạng thái trước của sensor
 bool real_State = false; //trạng thái chốt sau thời gian chống nhiẽu
 unsigned long SensorTime_tmp = 0;
-const unsigned long debounceTime = 3000;
+const unsigned long debounceTime = 3000; // sau 3s nếu trạng thái đúng => truetrue
 bool gotGateway = false; //cờ kết nối gateway
 
 
