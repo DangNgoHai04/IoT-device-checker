@@ -17,8 +17,8 @@ WiFiUDP UDP;
 LiquidCrystal_I2C LCD(0x27, 16, 2);
 
 unsigned long UDP_Timer = 0;
-unsigned long LCD_timer = 0;
-unsigned long timer1 = 0;
+unsigned long LCD_Timer = 0;
+unsigned long SENSOR_Send = 0;
 String tmp_line1 = " ";
 String tmp_line2 = " ";
 bool sensor_udp = false;
@@ -53,7 +53,6 @@ void loop()
 
       if (WiFi.status() == WL_CONNECTED) 
       {
-        // Kết nối STA thành công
         Serial.println("WiFi connected ==> STATE_MODBUS");
         UpdateLCD("STA CONFIG WIFI", "WIFI OK");
         STATE = STATE_MODBUS;
@@ -61,7 +60,6 @@ void loop()
 
       else 
       {
-        // Kết nối STA thất bại -> mở AP portal
         Serial.println("Start Config Portal");
         WiFi.mode(WIFI_AP);
         WiFi.softAP("ESP_Gateway", "12345678");
@@ -96,6 +94,7 @@ void loop()
         MB.addHreg(0, 0);  
 
         UDP.begin(1234);
+        
         STATE = STATE_RUN;
       } 
       else 
@@ -158,20 +157,16 @@ void loop()
       }
 
       MB.task(); 
-      static uint16_t lastH0 = MB.Hreg(0);
-
-      if (MB.Hreg(0) != lastH0) 
-      {
-        lastH0 = MB.Hreg(0);
-        if(lastH0 == 1)
+      if(Check_Timer(SENSOR_Send, 2000))
+    {
+        if(MB.Hreg(0) == 1)
         {
           Serial.println("NO");
           UpdateLCD("PRODUCT", "NO");
         }
         else Serial.println("YES");
-        UpdateLCD("PRODUCT", "YES");
-      }
-
+        UpdateLCD("PRODUCT", "YES");      
+    }
       break;
     }
   }
@@ -179,8 +174,8 @@ void loop()
 
 void UpdateLCD(String line1, String line2) 
 {
-    if (millis() - LCD_timer < Time_LCD) return; // tránh update quá nhanh
-  LCD_timer = millis();
+    if (millis() - LCD_Timer < Time_LCD) return; // tránh update quá nhanh
+  LCD_Timer = millis();
   // Chỉ cập nhật khi nội dung thay đổi để tránh nhấp nháy
   if (line1 != tmp_line1 || line2 != tmp_line2) 
   {
