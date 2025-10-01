@@ -18,19 +18,9 @@ IPAddress gatewayIP;
 bool last_State = false; //trạng thái trước của sensor
 bool real_State = false; //trạng thái chốt sau thời gian chống nhiẽu
 unsigned long SensorTime_tmp = 0;
-const unsigned long debounceTime = 3000;
+const unsigned long debounceTime = 3000; // sau 3s nếu trạng thái đúng => truetrue
 bool gotGateway = false; //cờ kết nối gateway
-unsigned long Sensor_send = 0; // thời gian gửi sensor định kì 
 
-<<<<<<< HEAD
-unsigned long UDP_Timer = 0;
-unsigned long LCD_Timer = 0;
-unsigned long SENSOR_Send = 0;
-String tmp_line1 = " ";
-String tmp_line2 = " ";
-bool sensor_udp = false;
-=======
->>>>>>> 7e0f1fcfa9bba318d815a9fc957da62b5fc9d99a
 
 bool Check_Timer(unsigned long &timer_tmp, uint16_t time);
 bool Check_Sensor();
@@ -61,44 +51,15 @@ void loop()
       bool res = WFM.autoConnect("ESP_Sensor", "12345678");
       if (res) 
       {
-<<<<<<< HEAD
-        Serial.println("WiFi connected ==> STATE_MODBUS");
-        UpdateLCD("STA CONFIG WIFI", "WIFI OK");
-        STATE = STATE_MODBUS;
-=======
         Serial.println("WiFi connected ==> STATE_UDP_WAIT");
         UDP.begin(UDP_PORT);   
         gotGateway = false;    
         STATE = STATE_UDP_WAIT;
->>>>>>> 7e0f1fcfa9bba318d815a9fc957da62b5fc9d99a
       } 
       else 
       {
-<<<<<<< HEAD
-        Serial.println("Start Config Portal");
-        WiFi.mode(WIFI_AP);
-        WiFi.softAP("ESP_Gateway", "12345678");
-
-        Serial.println("AP IP: " + WiFi.softAPIP().toString());
-        tmp_line1 = "";
-        tmp_line2 = "";
-        UpdateLCD("CONFIG PORTAL", WiFi.softAPIP().toString());
-        
-        WFM.startConfigPortal("ESP_Gateway", "12345678");
-
-        if (WiFi.status() == WL_CONNECTED) 
-        {
-          UpdateLCD("STA CONFIG WIFI", "WIFI OK");
-          STATE = STATE_MODBUS;
-        } else 
-        {
-          UpdateLCD("STA CONFIG WIFI","FAIL => RESTART");
-          ESP.restart();
-        }
-=======
         Serial.println("Failed WiFi config -> restart");
         ESP.restart();
->>>>>>> 7e0f1fcfa9bba318d815a9fc957da62b5fc9d99a
       }
       break;
     }
@@ -107,35 +68,7 @@ void loop()
     {
       if(digitalRead(RESET_PIN) == 0)
       {
-<<<<<<< HEAD
-        Serial.println("=== Setup Modbus TCP Server ===");
-        UpdateLCD("STA MODBUS", WiFi.localIP().toString());
-        MB.server(502);
-        MB.addHreg(0, 0);  
-
-        UDP.begin(1234);
-        
-        STATE = STATE_RUN;
-      } 
-      else 
-      {
-        Serial.println("WiFi lost ==> STATE_WIFI_CONFIG");
-        UpdateLCD("WIFI LOST", "CONFIG WIFI");
-        STATE = STATE_WIFI_CONFIG;
-      }
-
-      break;
-    }
-
-    case STATE_RUN: 
-    {
-      if (digitalRead(RESET_PIN) == LOW) 
-      {
-        Serial.println("Button pressed -> Reset WiFi");
-        UpdateLCD("Button Reset ","STA_CONFIG_WIFI");
-=======
         Serial.println("Button pressed => Reset Wifi");
->>>>>>> 7e0f1fcfa9bba318d815a9fc957da62b5fc9d99a
         WFM.resetSettings();
         ESP.restart();
         STATE = STATE_WIFI_CONFIG;
@@ -163,9 +96,9 @@ void loop()
               MB.connect(gatewayIP, 502);
 
               UDP.beginPacket(gatewayIP, UDP_PORT);
-              UDP.print("SENSOR_OK=" + WiFi.localIP().toString());
+              UDP.print("SENSOR_OK");
               UDP.endPacket();
-              Serial.println("[UDP] Sent: SENSOR_OK=%s", WiFi.localIP().toString().c_str);
+              Serial.println("[UDP] Sent: SENSOR_OK");
 
               gotGateway = true;    
               STATE = STATE_MODBUS_RUN;
@@ -194,10 +127,6 @@ void loop()
       }
       MB.task();
 
-      
-      
-      
-      
       if (MB.isConnected(gatewayIP) == 0) 
       {
         Serial.println("Modbus disconnected -> back to UDP wait");
@@ -205,27 +134,12 @@ void loop()
         STATE = STATE_UDP_WAIT;
         break;
       }
-<<<<<<< HEAD
-
-      MB.task(); 
-      if(Check_Timer(SENSOR_Send, 2000))
-    {
-        if(MB.Hreg(0) == 1)
-        {
-          Serial.println("NO");
-          UpdateLCD("PRODUCT", "NO");
-        }
-        else Serial.println("YES");
-        UpdateLCD("PRODUCT", "YES");      
-    }
-=======
       if(Check_Sensor() == 0)
       {
         Serial.println("co hang");
       }
       else Serial.println("khong co hang");
 
->>>>>>> 7e0f1fcfa9bba318d815a9fc957da62b5fc9d99a
       break;
     }
   }
@@ -233,20 +147,7 @@ void loop()
 
 bool Check_Sensor() 
 {
-<<<<<<< HEAD
-    if (millis() - LCD_Timer < Time_LCD) return; // tránh update quá nhanh
-  LCD_Timer = millis();
-  // Chỉ cập nhật khi nội dung thay đổi để tránh nhấp nháy
-  if (line1 != tmp_line1 || line2 != tmp_line2) 
-  {
-    LCD.clear();
-    LCD.setCursor(0, 0);
-    LCD.print(line1);
-    LCD.setCursor(0, 1);
-    LCD.print(line2);
-=======
     bool currentState = digitalRead(SENSOR_PIN); // LOW = có hàng
->>>>>>> 7e0f1fcfa9bba318d815a9fc957da62b5fc9d99a
 
     if (currentState != last_State) 
     {
@@ -259,11 +160,6 @@ bool Check_Sensor()
       real_State = currentState;
       MB.writeHreg(gatewayIP, 0, real_State ); //0 - co, 1 - ko
       Serial.printf("[Modbus] Sent state = %d\n", real_State);
-    }
-
-    if(Check_Timer(Sensor_send, 2000))
-    {
-      return real_State;
     }
 
   return real_State; 
