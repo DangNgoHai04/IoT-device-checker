@@ -18,8 +18,9 @@ IPAddress gatewayIP;
 bool last_State = false; //trạng thái trước của sensor
 bool real_State = false; //trạng thái chốt sau thời gian chống nhiẽu
 unsigned long SensorTime_tmp = 0;
-const unsigned long debounceTime = 3000; // sau 3s nếu trạng thái đúng => truetrue
+const unsigned long debounceTime = 3000;
 bool gotGateway = false; //cờ kết nối gateway
+unsigned long Sensor_send = 0; // thời gian gửi sensor định kì 
 
 
 bool Check_Timer(unsigned long &timer_tmp, uint16_t time);
@@ -96,9 +97,9 @@ void loop()
               MB.connect(gatewayIP, 502);
 
               UDP.beginPacket(gatewayIP, UDP_PORT);
-              UDP.print("SENSOR_OK");
+              UDP.print("SENSOR_OK=" + WiFi.localIP().toString());
               UDP.endPacket();
-              Serial.println("[UDP] Sent: SENSOR_OK");
+              Serial.println("[UDP] Sent: SENSOR_OK=%s", WiFi.localIP().toString().c_str);
 
               gotGateway = true;    
               STATE = STATE_MODBUS_RUN;
@@ -127,6 +128,10 @@ void loop()
       }
       MB.task();
 
+      
+      
+      
+      
       if (MB.isConnected(gatewayIP) == 0) 
       {
         Serial.println("Modbus disconnected -> back to UDP wait");
@@ -160,6 +165,11 @@ bool Check_Sensor()
       real_State = currentState;
       MB.writeHreg(gatewayIP, 0, real_State ); //0 - co, 1 - ko
       Serial.printf("[Modbus] Sent state = %d\n", real_State);
+    }
+
+    if(Check_Timer(Sensor_send, 2000))
+    {
+      return real_State;
     }
 
   return real_State; 
