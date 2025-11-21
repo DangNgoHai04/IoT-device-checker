@@ -97,9 +97,10 @@ void loop()
               MB.connect(gatewayIP, 502);
 
               UDP.beginPacket(gatewayIP, UDP_PORT);
-              UDP.print("SENSOR_OK=" + WiFi.localIP().toString());
+              // UDP.print("SENSOR_OK=" + WiFi.localIP().toString());
+              UDP.print("SENSOR_OK");
               UDP.endPacket();
-              Serial.println("[UDP] Sent: SENSOR_OK=%s", WiFi.localIP().toString().c_str);
+              // Serial.print("[UDP] Sent: SENSOR_OK=%s", WiFi.localIP().toString().c_str());
 
               gotGateway = true;    
               STATE = STATE_MODBUS_RUN;
